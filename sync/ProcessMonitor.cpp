@@ -7,6 +7,7 @@
 #include <algorithm>
 #define PROCESS_MONITOR_CPP
 #include "ProcessMonitor.h"
+#include "CommonTools.h"
 #include "LogToEventTraceForWindows.h"
 using namespace std;
 
@@ -17,40 +18,6 @@ static HANDLE g_MonitorStopEvent = NULL;
 static HANDLE g_MonitorTerminate = NULL;
 static multimap<wstring, ProMonitorRef&> g_MonitorRef;
 
-wstring GetProcessNameByID(DWORD processID)
-{
-	TCHAR szProcessName[MAX_PATH] = {0};
-
-	// Get a handle to the process.
-
-	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
-		PROCESS_VM_READ,
-		FALSE, processID);
-
-	// Get the process name.
-	if (hProcess == NULL) {
-		return L"";
-	}
-
-	HMODULE hMod;
-	DWORD cbNeeded;
-
-	if (0 == EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
-	{
-		ErrorInfoToEventLogWrapper(L"Failed in Retrieves a handle for each module, process id is %d, error code is %d", processID, GetLastError());
-		CloseHandle(hProcess);
-		return L"";
-	}
-
-	if (0 == GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR))) {
-		ErrorInfoToEventLogWrapper(L"Failed in get module, process id is %d, error code is %d", processID, GetLastError());
-		CloseHandle(hProcess);
-		return L"";
-	}
-
-	CloseHandle(hProcess);
-	return szProcessName;
-}
 
 VOID MonitorProcessPROC(VOID)
 {

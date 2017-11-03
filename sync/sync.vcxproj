@@ -150,6 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CommonTools.h" />
     <ClInclude Include="EventProvider.h" />
     <ClInclude Include="LogToEventTraceForWindows.h" />
     <ClInclude Include="stdafx.h" />
@@ -157,6 +158,7 @@
     <ClInclude Include="ProcessMonitor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CommonTools.cpp" />
     <ClCompile Include="LogToEventTraceForWindows.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
