@@ -25,6 +25,9 @@ VOID MonitorProcessPROC(VOID)
 	DWORD cbNeeded;
 	map<DWORD, wstring> BaseProcessInfo;
 	map<DWORD, wstring> CurrentProcessInfo;
+	HANDLE ghEvents[2];
+	ghEvents[0] = g_MonitorStopEvent;
+	ghEvents[1] = g_MonitorTerminate;
 
 start:
 	WaitForSingleObject(g_MonitorStartEvent, INFINITE);
@@ -38,11 +41,21 @@ start:
 		}
 	}
 	while (true) {
-		if (WaitForSingleObject(g_MonitorStopEvent, 300) == WAIT_OBJECT_0) {
+		
+		DWORD dwEvent = WaitForMultipleObjects(2, ghEvents, FALSE, 300);
+		switch (dwEvent)
+		{
+		case WAIT_OBJECT_0 + 0: // Stop was signaled
 			goto start;
-		}
+			break;
+		case WAIT_OBJECT_0 + 1:
+			return;
 
-		if (WaitForSingleObject(g_MonitorTerminate, 0) == WAIT_OBJECT_0) {
+		case WAIT_TIMEOUT:
+			break;
+		default:
+			ErrorInfoToEventLogWrapper(L"WaitForMultipleObjects error, error code %d", GetLastError());
+			ExitProcess(0);
 			return;
 		}
 
@@ -58,7 +71,7 @@ start:
 			if(g_MonitorRef.find(prcName) != g_MonitorRef.end()) {
 				CurrentProcessInfo[aProcesses[i]] = prcName;
 			}
-		}		
+		}
 
 		//generate create event
 		for_each(CurrentProcessInfo.begin(), CurrentProcessInfo.end(), [&BaseProcessInfo](pair<DWORD, wstring> item1) {
@@ -66,7 +79,8 @@ start:
 				BaseProcessInfo.insert(item1);
 				for_each(g_MonitorRef.begin(), g_MonitorRef.end(), [&item1](pair<wstring, ProMonitorRef&> item2) {
 					if (item1.second == item2.first) {
-						SetEvent(item2.second.EventCreated);
+						item2.second.ProcessID = item1.first;
+						SetEvent(item2.second.EventCreated); 
 						ResetEvent(item2.second.EventDestoryed);
 					}
 				});
@@ -78,6 +92,7 @@ start:
 			if (CurrentProcessInfo.end() == CurrentProcessInfo.find(Itor->first)) {
 				for_each(g_MonitorRef.begin(), g_MonitorRef.end(), [&Itor](pair<wstring, ProMonitorRef&> item) {
 					if (Itor->second == item.first) {
+						item.second.ProcessID = Itor->first;
 						SetEvent(item.second.EventDestoryed);
 						ResetEvent(item.second.EventCreated);
 					}

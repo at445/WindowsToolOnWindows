@@ -5,7 +5,7 @@
 #define LOG_TO_EVENT_TRACE_FOR_WINDOWS_CPP
 #include "LogToEventTraceForWindows.h"
 #include "EventProvider.h"
-#define PROVIDER_NAME L"SyncPAMAAndPackingTools"
+#define PROVIDER_NAME L"ICTEnhancementTools"
 
 static void EventToETW( WORD SubType, LPCTSTR pContent)
 {

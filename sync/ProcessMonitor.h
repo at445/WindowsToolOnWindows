@@ -11,6 +11,7 @@
 typedef struct {
 	HANDLE EventCreated;
 	HANDLE EventDestoryed;
+	DWORD ProcessID;
 	UUID uid;
 }ProMonitorRef;
 
